@@ -28,26 +28,36 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex justify-center items-center mb-6 space-x-4">
+      <div className="container mx-auto py-8 px-4 flex flex-col h-full">
+        {/* Month Nav Skeleton (shrink-0) */}
+        <div className="flex justify-center items-center mb-6 space-x-4 shrink-0">
           <Skeleton className="h-10 w-10" />
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-10 w-10" />
         </div>
-        <Skeleton className="h-40 w-full mb-6" />
-        <div className="space-y-2 mb-6">
-            <Skeleton className="h-8 w-1/3" />
+
+        {/* Upcoming Bills Widget Skeleton (shrink-0) */}
+        <div className="shrink-0">
+          <Skeleton className="h-40 w-full" />
         </div>
-        <Skeleton className="h-20 w-full mb-3" />
-        <Skeleton className="h-20 w-full mb-3" />
-        <Skeleton className="h-20 w-full mb-3" />
+        
+        {/* Scrollable Area Skeleton (flex-1 overflow-y-auto) */}
+        <div className="mt-8 flex-1 overflow-y-auto">
+          <div className="space-y-2 mb-6"> {/* This is the "Bills for..." heading */}
+              <Skeleton className="h-8 w-1/3" /> 
+          </div>
+          <Skeleton className="h-20 w-full mb-3" />
+          <Skeleton className="h-20 w-full mb-3" />
+          <Skeleton className="h-20 w-full mb-3" />
+        </div>
       </div>
     );
   }
   
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-center items-center mb-6 space-x-4">
+    <div className="container mx-auto py-8 px-4 flex flex-col h-full">
+      {/* Month Navigation */}
+      <div className="flex justify-center items-center mb-6 space-x-4 shrink-0">
         <Button variant="outline" size="icon" onClick={handlePreviousMonth} aria-label="Previous month">
           <ChevronLeft className="h-6 w-6" />
         </Button>
@@ -59,9 +69,13 @@ export default function HomePage() {
         </Button>
       </div>
 
-      <UpcomingBillsWidget bills={monthlyBills} />
+      {/* Upcoming Bills Widget - stays fixed */}
+      <div className="shrink-0">
+        <UpcomingBillsWidget bills={monthlyBills} />
+      </div>
       
-      <div className="mt-8">
+      {/* Scrollable Bill List Area */}
+      <div className="mt-8 flex-1 overflow-y-auto pb-4"> {/* Added pb-4 for some bottom spacing within scroll */}
         <BillList 
           bills={monthlyBills} 
           monthName={currentMonthName}
@@ -69,22 +83,20 @@ export default function HomePage() {
           onDeleteBill={deleteBill}
           sortBills={sortBills} 
         />
+        {monthlyBills.length === 0 && bills.length === 0 && !isLoading && (
+           <div className="mt-12 text-center">
+            <p className="text-lg text-muted-foreground mb-4">
+              It looks like you don't have any bills yet for any month.
+            </p>
+            <Link href="/add-bill" passHref>
+              <Button size="lg">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Add Your First Bill
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
-
-      {monthlyBills.length === 0 && bills.length === 0 && !isLoading && (
-         <div className="mt-12 text-center">
-          <p className="text-lg text-muted-foreground mb-4">
-            It looks like you don't have any bills yet for any month.
-          </p>
-          <Link href="/add-bill" passHref>
-            <Button size="lg">
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Add Your First Bill
-            </Button>
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
-
