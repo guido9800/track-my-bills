@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon } from "@/components/icons";
 import { format, parseISO } from 'date-fns';
-import { Trash2, Eye } from "lucide-react";
+import { Trash2, Eye, Repeat as RepeatIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
@@ -56,6 +56,12 @@ export function BillItem({ bill, onTogglePaid, onDelete }: BillItemProps) {
             <p className={cn("text-sm", bill.paid ? "text-muted-foreground" : "text-foreground/80")}>
               Due: {format(formattedDueDate, 'MMM d, yyyy')}
             </p>
+            {bill.recurrenceType && bill.recurrenceType !== "None" && (
+              <p className={cn("text-xs mt-0.5 flex items-center", bill.paid ? "text-muted-foreground" : "text-foreground/70")}>
+                <RepeatIcon className="h-3 w-3 mr-1" />
+                Repeats: {bill.recurrenceType}
+              </p>
+            )}
           </div>
         </div>
 
