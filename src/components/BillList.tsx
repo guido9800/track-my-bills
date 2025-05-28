@@ -1,27 +1,26 @@
+
 "use client";
 
 import type { Bill } from "@/lib/types";
 import { BillItem } from "@/components/BillItem";
-import { useBills } from "@/hooks/useBills";
+// import { useBills } from "@/hooks/useBills"; // No longer needed here
 import { FileText, AlertTriangle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface BillListProps {
   bills: Bill[];
   monthName: string;
+  onTogglePaid: (id: string) => void;
+  onDeleteBill: (id: string) => void;
+  sortBills: (billsToSort: Bill[]) => Bill[];
 }
 
-export function BillList({ bills: initialBills, monthName }: BillListProps) {
-  const { togglePaidStatus, deleteBill, sortBills } = useBills();
+export function BillList({ bills, monthName, onTogglePaid, onDeleteBill, sortBills }: BillListProps) {
+  // const { togglePaidStatus, deleteBill, sortBills } = useBills(); // Removed
   
-  // The useBills hook manages the source of truth for bills.
-  // To ensure this component reacts to changes from the hook (e.g., after adding a bill and navigating back),
-  // we should re-fetch and sort the bills from the hook if initialBills is not always up-to-date.
-  // However, if page.tsx correctly passes the updated & sorted bills, this local sort is fine.
-  // For robustness, let's assume initialBills is the set to display and sort that.
-  const sortedBills = sortBills(initialBills);
+  const sortedBillsToDisplay = sortBills(bills);
 
-  if (sortedBills.length === 0) {
+  if (sortedBillsToDisplay.length === 0) {
     return (
       <div className="mt-8 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed rounded-lg">
         <FileText className="h-16 w-16 text-muted-foreground mb-4" />
@@ -35,7 +34,7 @@ export function BillList({ bills: initialBills, monthName }: BillListProps) {
     <div className="mt-6">
       <h2 className="text-2xl font-semibold mb-4 text-primary">Bills for {monthName}</h2>
       <AnimatePresence>
-        {sortedBills.map((bill) => (
+        {sortedBillsToDisplay.map((bill) => (
           <motion.div
             key={bill.id}
             layout // Animate layout changes (e.g., when sorting)
@@ -46,8 +45,8 @@ export function BillList({ bills: initialBills, monthName }: BillListProps) {
           >
             <BillItem
               bill={bill}
-              onTogglePaid={togglePaidStatus}
-              onDelete={deleteBill}
+              onTogglePaid={onTogglePaid} // Pass down the prop
+              onDelete={onDeleteBill}     // Pass down the prop
             />
           </motion.div>
         ))}

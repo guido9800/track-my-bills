@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,17 +12,15 @@ import { PlusCircle, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HomePage() {
-  const { bills, isLoading, getBillsForMonth, sortBills } = useBills();
+  const { bills, isLoading, getBillsForMonth, sortBills, togglePaidStatus, deleteBill } = useBills();
   const [currentDate, setCurrentDate] = useState(new Date()); // For displaying current month name
 
-  // Derived state should be calculated within the render or via useMemo
-  // No need for separate useState for monthlyBills if bills from useBills is the source of truth
   const monthlyBills = getBillsForMonth(currentDate);
-  const sortedMonthlyBills = sortBills(monthlyBills);
+  // Sorting is now handled within BillList or by passing sorted bills
+  // const sortedMonthlyBills = sortBills(monthlyBills); 
 
   const currentMonthName = format(currentDate, 'MMMM yyyy');
 
-  // Handle loading state for initial data fetch
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -41,7 +40,13 @@ export default function HomePage() {
       <UpcomingBillsWidget bills={monthlyBills} />
       
       <div className="mt-8">
-        <BillList bills={monthlyBills} monthName={currentMonthName} />
+        <BillList 
+          bills={monthlyBills} 
+          monthName={currentMonthName}
+          onTogglePaid={togglePaidStatus}
+          onDeleteBill={deleteBill}
+          sortBills={sortBills} 
+        />
       </div>
 
       {monthlyBills.length === 0 && bills.length === 0 && (
