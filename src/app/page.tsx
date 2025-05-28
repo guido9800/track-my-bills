@@ -26,56 +26,73 @@ export default function HomePage() {
   const monthlyBills = getBillsForMonth(currentDate);
   const currentMonthName = format(currentDate, 'MMMM yyyy');
 
+  // AppHeader is h-16 (4rem/64px) and sticky top-0. Its height is fixed.
+  const appHeaderHeight = '4rem'; 
+  // MonthNav sticky section: py-4 (1rem top, 1rem bottom), content (button h-10 = 2.5rem). Total height = 1+2.5+1 = 4.5rem.
+  const monthNavSectionHeight = '4.5rem'; 
+
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 flex flex-col h-full">
-        {/* Month Nav Skeleton (shrink-0) */}
-        <div className="flex justify-center items-center mb-6 space-x-4 shrink-0">
-          <Skeleton className="h-10 w-10" />
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-10 w-10" />
-        </div>
-
-        {/* Upcoming Bills Widget Skeleton (shrink-0) */}
-        <div className="shrink-0">
-          <Skeleton className="h-40 w-full" />
-        </div>
-        
-        {/* Scrollable Area Skeleton (flex-1 overflow-y-auto) */}
-        <div className="mt-8 flex-1 overflow-y-auto">
-          <div className="space-y-2 mb-6"> {/* This is the "Bills for..." heading */}
-              <Skeleton className="h-8 w-1/3" /> 
+      // Main wrapper for the page content for skeleton
+      <div>
+        {/* This container provides the overall page padding */}
+        <div className="container mx-auto px-4 pt-8 pb-8">
+          {/* Month Nav Skeleton (Mimics content of first sticky block + its padding) */}
+          <div className="mb-6"> {/* Original spacing */}
+            <div className="flex justify-center items-center space-x-4">
+                <Skeleton className="h-10 w-10" />
+                <Skeleton className="h-8 w-40" />
+                <Skeleton className="h-10 w-10" />
+            </div>
           </div>
-          <Skeleton className="h-20 w-full mb-3" />
-          <Skeleton className="h-20 w-full mb-3" />
-          <Skeleton className="h-20 w-full mb-3" />
+
+          {/* Upcoming Bills Widget Skeleton (Mimics content of second sticky block + its padding) */}
+          <div className="mb-8"> {/* Original spacing for widget or before BillList */}
+            <Skeleton className="h-40 w-full" />
+          </div>
+          
+          {/* Bill List Area Skeleton (This is the scrollable part) */}
+          <div>
+            <div className="space-y-2 mb-6">
+                <Skeleton className="h-8 w-1/3" /> 
+            </div>
+            <Skeleton className="h-20 w-full mb-3" />
+            <Skeleton className="h-20 w-full mb-3" />
+            <Skeleton className="h-20 w-full mb-3" />
+          </div>
         </div>
       </div>
     );
   }
   
   return (
-    <div className="container mx-auto py-8 px-4 flex flex-col h-full">
-      {/* Month Navigation */}
-      <div className="flex justify-center items-center mb-6 space-x-4 shrink-0">
-        <Button variant="outline" size="icon" onClick={handlePreviousMonth} aria-label="Previous month">
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <h2 className="text-2xl font-semibold text-center text-primary w-48">
-          {currentMonthName}
-        </h2>
-        <Button variant="outline" size="icon" onClick={handleNextMonth} aria-label="Next month">
-          <ChevronRight className="h-6 w-6" />
-        </Button>
+    // Main wrapper for the page, no vertical padding here to allow sticky top to work relative to viewport edge
+    <div>
+      {/* Month Navigation Section - Sticky below AppHeader */}
+      <div className={`sticky top-[${appHeaderHeight}] z-20 border-b bg-background`}>
+        <div className="container mx-auto flex items-center justify-center space-x-4 px-4 py-4">
+          <Button variant="outline" size="icon" onClick={handlePreviousMonth} aria-label="Previous month">
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <h2 className="text-2xl font-semibold text-center text-primary w-48">
+            {currentMonthName}
+          </h2>
+          <Button variant="outline" size="icon" onClick={handleNextMonth} aria-label="Next month">
+            <ChevronRight className="h-6 w-6" />
+          </Button>
+        </div>
       </div>
 
-      {/* Upcoming Bills Widget - stays fixed */}
-      <div className="shrink-0">
-        <UpcomingBillsWidget bills={monthlyBills} />
+      {/* Upcoming Bills Widget Section - Sticky below AppHeader and Month Navigation */}
+      <div className={`sticky top-[calc(${appHeaderHeight}+${monthNavSectionHeight})] z-10 border-b bg-background`}>
+        <div className="container mx-auto px-4 py-6"> 
+            <UpcomingBillsWidget bills={monthlyBills} />
+        </div>
       </div>
       
-      {/* Scrollable Bill List Area */}
-      <div className="mt-8 flex-1 overflow-y-auto pb-4"> {/* Added pb-4 for some bottom spacing within scroll */}
+      {/* Scrollable Bill List Area - This content will scroll normally */}
+      <div className="container mx-auto px-4 pt-8 pb-8"> 
+        {/* pt-8 provides space so content doesn't start hidden under the last sticky element */}
         <BillList 
           bills={monthlyBills} 
           monthName={currentMonthName}
