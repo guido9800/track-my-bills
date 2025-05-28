@@ -1,5 +1,15 @@
 
 import type {NextConfig} from 'next';
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  // For testing PWA features in dev, you might want to comment out the disable line
+  // disable: process.env.NODE_ENV === "development", 
+  // buildExcludes: ["app-build-manifest.json"], // Example for excluding files if needed
+});
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -26,4 +36,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);
