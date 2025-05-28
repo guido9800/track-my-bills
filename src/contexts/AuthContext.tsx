@@ -24,23 +24,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    console.log('[AuthContext] Initializing, setting up onAuthStateChanged listener.');
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log('[AuthContext] onAuthStateChanged triggered. currentUser:', currentUser);
       setUser(currentUser);
       setLoading(false);
     });
-    return () => unsubscribe();
+    return () => {
+      console.log('[AuthContext] Cleaning up onAuthStateChanged listener.');
+      unsubscribe();
+    }
   }, []);
 
   const logout = async () => {
+    console.log('[AuthContext] logout initiated.');
     setLoading(true);
     try {
       await firebaseSignOut(auth);
-      // Clear any user-specific local storage if necessary
+      console.log('[AuthContext] Firebase sign out successful.');
       // localStorage.removeItem('billtrack_bills'); // Example
       router.push('/login');
     } catch (error) {
-      console.error("Error signing out: ", error);
-      // Handle error (e.g., show a toast)
+      console.error("[AuthContext] Error signing out: ", error);
     } finally {
       setLoading(false);
     }
@@ -48,23 +53,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Route Protection Logic
   useEffect(() => {
+    console.log(`[AuthContext] Route protection effect. Loading: ${loading}, User: ${user ? user.uid : null}, Pathname: ${pathname}`);
     if (!loading) {
       const publicPaths = ['/login', '/signup'];
       const isPublicPath = publicPaths.includes(pathname);
+      console.log(`[AuthContext] Pathname: ${pathname}, Is Public: ${isPublicPath}`);
 
       if (!user && !isPublicPath) {
+        console.log('[AuthContext] Condition met: !user && !isPublicPath. Redirecting to /login.');
         router.push('/login');
       } else if (user && isPublicPath) {
+        console.log('[AuthContext] Condition met: user && isPublicPath. Redirecting to /.');
         router.push('/');
+      } else {
+        console.log('[AuthContext] No redirect condition met.');
       }
     }
   }, [user, loading, pathname, router]);
 
 
   if (loading && !['/login', '/signup'].includes(pathname)) {
-    // Show a full-page loader for protected routes during initial auth check
-    // to prevent flicker of content before redirect.
-     return (
+    console.log(`[AuthContext] Displaying loader for protected route: ${pathname}`);
+    return (
       <div className="flex min-h-screen flex-col items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="mt-4 text-muted-foreground">Loading authentication...</p>
@@ -72,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
   
-  // For login/signup pages, or if loading is done and user state is determined.
+  console.log(`[AuthContext] Rendering children. Loading: ${loading}, User: ${user ? user.uid : null}, Pathname: ${pathname}`);
   return (
     <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
