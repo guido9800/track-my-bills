@@ -29,11 +29,11 @@ export function useAppTheme() {
 // Inner component to access next-themes context and provide AppThemeContext
 function AppThemeContextProvider({ children }: { children: React.ReactNode }) {
   const { theme: nextTheme, setTheme: setNextTheme, resolvedTheme } = useNextTheme();
-  const [colorScheme, setColorSchemeState] = React.useState<ColorScheme>("teal");
+  const [colorScheme, setColorSchemeState] = React.useState<ColorScheme>("blue"); // Default color scheme set to blue
 
   React.useEffect(() => {
     const savedColorScheme = localStorage.getItem("billtrack-color-scheme") as ColorScheme | null;
-    const initialColorScheme = savedColorScheme || "teal";
+    const initialColorScheme = savedColorScheme || "blue"; // Fallback to blue if nothing saved
     setColorSchemeState(initialColorScheme);
     // Ensure data-color-theme is set on mount if not already set by server/initial render
     if (document.documentElement.getAttribute("data-color-theme") !== initialColorScheme) {
