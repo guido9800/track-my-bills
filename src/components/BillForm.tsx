@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,7 +50,7 @@ export function BillForm() {
     resolver: zodResolver(billFormSchema),
     defaultValues: {
       name: "",
-      amount: undefined,
+      amount: "" as unknown as number, // Initialize with empty string to make it controlled
       category: undefined,
     },
   });
