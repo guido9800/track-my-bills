@@ -79,7 +79,7 @@ export function UpcomingBillsWidget({ bills }: UpcomingBillsWidgetProps) {
           </div>
         </div>
         <div className="flex flex-col items-start gap-1 p-4 rounded-lg bg-accent/10">
-          <div className="flex items-center text-sm text-accent-foreground/80">
+          <div className="flex items-center text-sm text-accent"> {/* Changed text-accent-foreground/80 to text-accent */}
             <TrendingDown className="h-4 w-4 mr-1 text-accent" />
             Unpaid Bills
           </div>
