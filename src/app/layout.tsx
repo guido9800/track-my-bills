@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from '@/contexts/AuthContext'; // Import AuthProvider
+import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,15 +38,17 @@ export default function RootLayout({
           enableSystem={false} // Explicitly disable system if default is light/dark
           disableTransitionOnChange
         >
-          <AuthProvider> {/* Wrap with AuthProvider */}
-            <div className="flex min-h-screen flex-col">
-              <AppHeader />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Toaster />
-            </div>
-          </AuthProvider>
+          <TooltipProvider> {/* Wrap with TooltipProvider */}
+            <AuthProvider> {/* Wrap with AuthProvider */}
+              <div className="flex min-h-screen flex-col">
+                <AppHeader />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Toaster />
+              </div>
+            </AuthProvider>
+          </TooltipProvider>
           <SpeedInsights />
         </ThemeProvider>
       </body>

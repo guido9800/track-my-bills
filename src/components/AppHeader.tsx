@@ -15,6 +15,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"; // Import Tooltip components
 import { useAppTheme } from "@/components/ThemeProvider";
 import type { ColorScheme, AppearanceMode } from "@/components/ThemeProvider";
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,11 +61,18 @@ export function AppHeader() {
         <div className="flex items-center gap-2">
           {user && (
             <>
-              <Link href="/" passHref>
-                <Button variant="ghost" size="icon" aria-label="Dashboard">
-                  <LayoutDashboard className="h-5 w-5" />
-                </Button>
-              </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/" passHref>
+                    <Button variant="ghost" size="icon" aria-label="Dashboard">
+                      <LayoutDashboard className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Main Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
               <Link href="/add-bill" passHref>
                 <Button variant="default" size="sm">
                   <PlusCircle className="mr-2 h-5 w-5" />
