@@ -26,8 +26,8 @@ export function AppHeader() {
   } = useAppTheme();
 
   const colorSchemes: {value: ColorScheme, label: string}[] = [
-    { value: "teal", label: "Teal (Default)"},
-    { value: "blue", label: "Blue" },
+    { value: "teal", label: "Teal"},
+    { value: "blue", label: "Blue (Default)" },
     { value: "orange", label: "Orange" },
   ];
 
