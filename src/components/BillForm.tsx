@@ -26,12 +26,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { useBills } from "@/hooks/useBills";
 import { BillCategories, CategoryIcon } from "@/components/icons";
-import type { Bill, BillCategory, RecurrenceType } from "@/lib/types"; // Added RecurrenceType
-import { RecurrenceOptions } from "@/lib/types"; // Added RecurrenceOptions
+import type { Bill, BillCategory, RecurrenceType } from "@/lib/types";
+import { RecurrenceOptions } from "@/lib/types";
 import { CalendarIcon, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const billFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(50, "Name must be less than 50 characters."),
@@ -48,7 +49,6 @@ const billFormSchema = z.object({
       path: ["recurrenceStartDate"],
     });
   }
-  // If a recurrence start date is provided, a recurrence type (other than "None") should also be selected.
   if (data.recurrenceStartDate && (!data.recurrenceType || data.recurrenceType === "None")) {
     ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -60,53 +60,99 @@ const billFormSchema = z.object({
 
 type BillFormValues = z.infer<typeof billFormSchema>;
 
-export function BillForm() {
-  const { addBill } = useBills();
+interface BillFormProps {
+  billToEdit?: Bill;
+}
+
+export function BillForm({ billToEdit }: BillFormProps) {
+  const { addBill, updateBill } = useBills();
   const { toast } = useToast();
   const router = useRouter();
+  const isEditing = !!billToEdit;
+
+  const defaultFormValues: BillFormValues = billToEdit
+    ? {
+        name: billToEdit.name,
+        amount: billToEdit.amount,
+        // Ensure dueDate is parsed correctly, providing a fallback if it's somehow invalid
+        dueDate: billToEdit.dueDate ? parseISO(billToEdit.dueDate) : new Date(), 
+        category: billToEdit.category,
+        recurrenceType: billToEdit.recurrenceType || "None",
+        recurrenceStartDate: billToEdit.recurrenceStartDate ? parseISO(billToEdit.recurrenceStartDate) : undefined,
+      }
+    : {
+        name: "",
+        amount: "" as unknown as number,
+        category: undefined,
+        dueDate: undefined,
+        recurrenceType: "None",
+        recurrenceStartDate: undefined,
+      };
 
   const form = useForm<BillFormValues>({
     resolver: zodResolver(billFormSchema),
-    defaultValues: {
-      name: "",
-      amount: "" as unknown as number, 
-      category: undefined,
-      dueDate: undefined,
-      recurrenceType: "None",
-      recurrenceStartDate: undefined,
-    },
+    defaultValues: defaultFormValues,
   });
+  
+  // Reset form if billToEdit changes (e.g. navigating between edit pages or prop updates)
+  useEffect(() => {
+    if (billToEdit) {
+      form.reset({
+        name: billToEdit.name,
+        amount: billToEdit.amount,
+        dueDate: billToEdit.dueDate ? parseISO(billToEdit.dueDate) : new Date(),
+        category: billToEdit.category,
+        recurrenceType: billToEdit.recurrenceType || "None",
+        recurrenceStartDate: billToEdit.recurrenceStartDate ? parseISO(billToEdit.recurrenceStartDate) : undefined,
+      });
+    } else {
+      form.reset({ // Reset to blank form if billToEdit becomes undefined
+        name: "",
+        amount: "" as unknown as number,
+        category: undefined,
+        dueDate: undefined,
+        recurrenceType: "None",
+        recurrenceStartDate: undefined,
+      });
+    }
+  }, [billToEdit, form]);
+
 
   const watchedRecurrenceType = form.watch("recurrenceType");
 
   function onSubmit(data: BillFormValues) {
-    const billPayload: Omit<Bill, 'id' | 'paid' | 'createdAt'> = {
-        name: data.name,
-        amount: data.amount,
-        dueDate: format(data.dueDate, "yyyy-MM-dd"),
-        category: data.category as BillCategory,
+    const billDataForStorage: Omit<Bill, 'id' | 'paid' | 'createdAt'> = {
+      name: data.name,
+      amount: data.amount,
+      dueDate: format(data.dueDate, "yyyy-MM-dd"),
+      category: data.category as BillCategory,
+      // Ensure recurrenceType is undefined if "None", otherwise use the value
+      recurrenceType: data.recurrenceType === "None" ? undefined : data.recurrenceType,
+      recurrenceStartDate: data.recurrenceStartDate ? format(data.recurrenceStartDate, "yyyy-MM-dd") : undefined,
+    };
+
+    if (isEditing && billToEdit) {
+      const updatedBill: Bill = {
+        ...billToEdit, // Preserve id, paid, createdAt from original bill
+        ...billDataForStorage, // Apply new form data
       };
-  
-      if (data.recurrenceType && data.recurrenceType !== "None") {
-        billPayload.recurrenceType = data.recurrenceType;
-        // recurrenceStartDate is guaranteed by superRefine if recurrenceType is not "None"
-        if (data.recurrenceStartDate) { 
-            billPayload.recurrenceStartDate = format(data.recurrenceStartDate, "yyyy-MM-dd");
-        }
-      } else {
-        billPayload.recurrenceType = undefined;
-        billPayload.recurrenceStartDate = undefined;
-      }
-
-    addBill(billPayload);
-
-    toast({
-      title: "Bill Added",
-      description: `${data.name} has been successfully added.`,
-      action: <CheckCircle className="text-green-500" />,
-    });
-    form.reset(); // Resets to defaultValues including recurrenceType: "None"
-    router.push('/');
+      updateBill(updatedBill);
+      toast({
+        title: "Bill Updated",
+        description: `${updatedBill.name} has been successfully updated.`,
+        action: <CheckCircle className="text-green-500" />,
+      });
+      router.push(billToEdit.id ? `/bill/${billToEdit.id}` : '/');
+    } else {
+      addBill(billDataForStorage);
+      toast({
+        title: "Bill Added",
+        description: `${data.name} has been successfully added.`,
+        action: <CheckCircle className="text-green-500" />,
+      });
+      form.reset(); // Reset form to defaultValues for new bill
+      router.push('/');
+    }
   }
 
   return (
@@ -169,13 +215,13 @@ export function BillForm() {
                     selected={field.value}
                     onSelect={(date) => {
                         field.onChange(date);
-                        // If recurrence is set and no start date yet, default start date to due date
                         if (watchedRecurrenceType && watchedRecurrenceType !== "None" && !form.getValues("recurrenceStartDate") && date) {
                             form.setValue("recurrenceStartDate", date, { shouldValidate: true });
                         }
                     }}
-                    disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1)) } 
-                    initialFocus
+                    // Allow past dates when editing, but not for new bills if not editing
+                    disabled={(date) => !isEditing && date < new Date(new Date().setDate(new Date().getDate() -1)) } 
+                    initialFocus={!isEditing} // Only initialFocus on new bill form
                   />
                 </PopoverContent>
               </Popover>
@@ -189,7 +235,7 @@ export function BillForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
@@ -223,10 +269,10 @@ export function BillForm() {
                     if (value === "None") {
                         form.setValue("recurrenceStartDate", undefined, {shouldValidate: true});
                     } else if (form.getValues("dueDate") && !form.getValues("recurrenceStartDate")) {
-                        // Set default start date to due date if not already set
                         form.setValue("recurrenceStartDate", form.getValues("dueDate"), {shouldValidate: true});
                     }
                 }} 
+                value={field.value || "None"}
                 defaultValue={field.value || "None"}
               >
                 <FormControl>
@@ -278,8 +324,9 @@ export function BillForm() {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1)) }
-                      initialFocus
+                       // Allow past dates when editing
+                      disabled={(date) => !isEditing && date < new Date(new Date().setDate(new Date().getDate() -1)) }
+                      initialFocus={!isEditing}
                     />
                   </PopoverContent>
                 </Popover>
@@ -290,7 +337,7 @@ export function BillForm() {
         )}
         
         <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-          Add Bill
+          {isEditing ? "Update Bill" : "Add Bill"}
         </Button>
       </form>
     </Form>

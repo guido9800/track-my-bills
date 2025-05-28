@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -75,6 +76,10 @@ export function useBills() {
     });
   }, [bills]);
 
+  const getBillById = useCallback((id: string): Bill | undefined => {
+    return bills.find(bill => bill.id === id);
+  }, [bills]);
+
   const sortBills = useCallback((billsToSort: Bill[]): Bill[] => {
     return [...billsToSort].sort((a, b) => {
       if (a.paid !== b.paid) {
@@ -97,6 +102,7 @@ export function useBills() {
     togglePaidStatus,
     deleteBill,
     getBillsForMonth,
+    getBillById,
     sortBills,
   };
 }
