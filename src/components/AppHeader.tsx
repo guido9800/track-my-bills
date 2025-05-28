@@ -24,6 +24,7 @@ import { useAppTheme } from "@/components/ThemeProvider";
 import type { ColorScheme, AppearanceMode } from "@/components/ThemeProvider";
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useState, useEffect } from 'react'; // Import useState and useEffect
 
 export function AppHeader() {
   const { 
@@ -33,6 +34,11 @@ export function AppHeader() {
     setColorScheme 
   } = useAppTheme();
   const { user, logout, loading } = useAuth();
+  const [iconVersion, setIconVersion] = useState(Date.now()); // Add state for cache busting
+
+  // This effect is not strictly necessary for Date.now() but useful if you wanted to update it on some event
+  // For now, Date.now() in the src will change on re-renders.
+  // If you want to force a refresh less often, you could update iconVersion based on some other trigger.
 
   const colorSchemes: {value: ColorScheme, label: string}[] = [
     { value: "teal", label: "Teal"},
@@ -51,16 +57,20 @@ export function AppHeader() {
     return email.substring(0, 2).toUpperCase();
   };
 
+  // Function to manually refresh icon for testing (optional)
+  // const refreshIcon = () => setIconVersion(Date.now());
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Image 
-            src="/icons/icon-192x192.png" // Changed from apple-touch-icon.png
+            src={`/icons/icon-192x192.png?v=${iconVersion}`} // Added cache-busting query parameter
             alt="Track-My-Bills App Icon" 
             width={28} 
             height={28}
-            className="rounded-sm" // Added a slight rounding for visual consistency
+            className="rounded-sm"
+            key={iconVersion} // Adding key prop also helps React re-render the Image component
           />
           <span className="text-2xl font-bold text-primary">Track-My-Bills</span>
         </Link>
