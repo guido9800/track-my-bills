@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -5,6 +6,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { Toaster } from '@/components/ui/toaster';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from '@/contexts/AuthContext'; // Import AuthProvider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -32,16 +34,18 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem
+          enableSystem={false} // Explicitly disable system if default is light/dark
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col">
-            <AppHeader />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Toaster />
-          </div>
+          <AuthProvider> {/* Wrap with AuthProvider */}
+            <div className="flex min-h-screen flex-col">
+              <AppHeader />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Toaster />
+            </div>
+          </AuthProvider>
           <SpeedInsights />
         </ThemeProvider>
       </body>
