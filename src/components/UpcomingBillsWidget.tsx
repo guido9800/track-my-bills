@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Bill } from "@/lib/types";
 import { TrendingUp, TrendingDown, DollarSign, ListChecks } from "lucide-react";
 import { format, parseISO, isFuture, isToday } from 'date-fns';
-import { Separator } from "@/components/ui/separator"; // Added import
+import { Separator } from "@/components/ui/separator";
 
 interface UpcomingBillsWidgetProps {
   bills: Bill[]; // Bills for the current month
@@ -68,48 +68,50 @@ export function UpcomingBillsWidget({ bills }: UpcomingBillsWidgetProps) {
           Monthly Snapshot
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        <div className="flex flex-col items-start gap-1 p-4 rounded-lg bg-primary/5">
-          <div className="flex items-center text-sm text-primary/80">
-            <DollarSign className="h-4 w-4 mr-1" />
-            Total Due (Unpaid)
+      <CardContent className="space-y-4 p-3 sm:p-4 md:p-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+          <div className="flex flex-col items-start gap-0.5 p-2 md:p-3 rounded-lg bg-primary/5">
+            <div className="flex items-center text-xs sm:text-sm text-primary/80">
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              Total Due
+            </div>
+            <div className="text-base sm:text-lg md:text-xl font-bold text-primary">
+              ${summary.totalDue.toFixed(2)}
+            </div>
           </div>
-          <div className="text-3xl font-bold text-primary">
-            ${summary.totalDue.toFixed(2)}
+          <div className="flex flex-col items-start gap-0.5 p-2 md:p-3 rounded-lg bg-accent/10">
+            <div className="flex items-center text-xs sm:text-sm text-accent">
+              <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-accent" />
+              Unpaid Bills
+            </div>
+            <div className="text-base sm:text-lg md:text-xl font-bold text-accent">
+              {summary.unpaidCount}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col items-start gap-1 p-4 rounded-lg bg-accent/10">
-          <div className="flex items-center text-sm text-accent"> {/* Changed text-accent-foreground/80 to text-accent */}
-            <TrendingDown className="h-4 w-4 mr-1 text-accent" />
-            Unpaid Bills
-          </div>
-          <div className="text-3xl font-bold text-accent">
-            {summary.unpaidCount}
-          </div>
-        </div>
-        <div className="flex flex-col items-start gap-1 p-4 rounded-lg bg-green-500/10">
-           <div className="flex items-center text-sm text-green-700/80 dark:text-green-400/80">
-            <TrendingUp className="h-4 w-4 mr-1 text-green-600 dark:text-green-500" />
-            Paid Bills
-          </div>
-          <div className="text-3xl font-bold text-green-600 dark:text-green-500">
-            {summary.paidCount}
+          <div className="flex flex-col items-start gap-0.5 p-2 md:p-3 rounded-lg bg-green-500/10">
+             <div className="flex items-center text-xs sm:text-sm text-green-700/80 dark:text-green-400/80">
+              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-green-600 dark:text-green-500" />
+              Paid Bills
+            </div>
+            <div className="text-base sm:text-lg md:text-xl font-bold text-green-600 dark:text-green-500">
+              {summary.paidCount}
+            </div>
           </div>
         </div>
         
         {summary.nextDueBills.length > 0 && summary.nextDueDateFormatted && (
-           <div className="sm:col-span-2 md:col-span-3 flex flex-col gap-2 p-4 rounded-lg bg-secondary/20 border border-secondary">
-             <p className="text-sm text-secondary-foreground/80 shrink-0">
+           <div className="flex flex-col gap-2 p-3 sm:p-4 rounded-lg bg-secondary/20 border border-secondary">
+             <p className="text-xs sm:text-sm text-secondary-foreground/80 shrink-0">
                Next Bills Due on {summary.nextDueDateFormatted}:
              </p>
-             <div className="max-h-32 overflow-y-auto space-y-2 pr-2"> {/* Scrollable container */}
+             <div className="max-h-24 sm:max-h-32 overflow-y-auto space-y-1.5 sm:space-y-2 pr-2"> {/* Scrollable container */}
                {summary.nextDueBills.map((bill, index) => (
                  <React.Fragment key={bill.id}>
                    <div className="flex justify-between items-center">
-                     <span className="text-md font-semibold text-secondary-foreground truncate" title={bill.name}>
+                     <span className="text-sm sm:text-md font-semibold text-secondary-foreground truncate" title={bill.name}>
                        {bill.name}
                      </span>
-                     <span className="text-md font-semibold text-secondary-foreground whitespace-nowrap">
+                     <span className="text-sm sm:text-md font-semibold text-secondary-foreground whitespace-nowrap">
                        ${bill.amount.toFixed(2)}
                      </span>
                    </div>
@@ -123,7 +125,7 @@ export function UpcomingBillsWidget({ bills }: UpcomingBillsWidgetProps) {
         )}
 
          {bills.length === 0 && (
-            <div className="sm:col-span-2 md:col-span-3 p-4 text-center text-muted-foreground">
+            <div className="p-4 text-center text-muted-foreground">
                 No bills scheduled for this month yet.
             </div>
         )}
