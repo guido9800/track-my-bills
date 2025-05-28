@@ -2,9 +2,9 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image'; // Added for using image icons
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, LayoutDashboard, Palette, Sun, Moon, Monitor, LogOut, LogIn } from 'lucide-react'; // Removed PiggyBank
+import { PlusCircle, LayoutDashboard, Palette, Sun, Moon, Monitor, LogOut, LogIn } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,12 +55,12 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          {/* Replaced PiggyBank lucide icon with an Image component */}
           <Image 
-            src="/icons/apple-touch-icon.png" 
+            src="/icons/icon-192x192.png" // Changed from apple-touch-icon.png
             alt="Track-My-Bills App Icon" 
-            width={28} // Corresponds to h-7 w-7 (1.75rem * 16px/rem = 28px)
+            width={28} 
             height={28}
+            className="rounded-sm" // Added a slight rounding for visual consistency
           />
           <span className="text-2xl font-bold text-primary">Track-My-Bills</span>
         </Link>
