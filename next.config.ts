@@ -3,12 +3,14 @@ import type {NextConfig} from 'next';
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
-  dest: "public",
-  register: true,
-  skipWaiting: true,
-  // For testing PWA features in dev, you might want to comment out the disable line
-  // disable: process.env.NODE_ENV === "development", 
+  dest: "public", // Destination directory for service worker files
+  register: true, // Register the service worker
+  skipWaiting: true, // Instructs the waiting service worker to become the active service worker
+  disable: process.env.NODE_ENV === "development", // Disable PWA in development mode for easier debugging (optional, can be enabled)
   // buildExcludes: ["app-build-manifest.json"], // Example for excluding files if needed
+  // sw: "service-worker.js", // You can specify a custom service worker file if needed
+  // cacheOnFrontEndNav: true, // Caches pages navigated to on the front-end
+  // reloadOnOnline: true, // Reload the app when it comes back online
 });
 
 const nextConfig: NextConfig = {
