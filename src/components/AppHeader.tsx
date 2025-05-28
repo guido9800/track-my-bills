@@ -2,8 +2,9 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image'; // Added for using image icons
 import { Button } from '@/components/ui/button';
-import { PlusCircle, LayoutDashboard, Palette, Sun, Moon, Monitor, PiggyBank, LogOut, UserCircle, LogIn } from 'lucide-react';
+import { PlusCircle, LayoutDashboard, Palette, Sun, Moon, Monitor, LogOut, LogIn } from 'lucide-react'; // Removed PiggyBank
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,17 +14,16 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"; // Import Tooltip components
+} from "@/components/ui/tooltip";
 import { useAppTheme } from "@/components/ThemeProvider";
 import type { ColorScheme, AppearanceMode } from "@/components/ThemeProvider";
 import { useAuth } from '@/contexts/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function AppHeader() {
   const { 
@@ -55,7 +55,13 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <PiggyBank className="h-7 w-7 text-primary" />
+          {/* Replaced PiggyBank lucide icon with an Image component */}
+          <Image 
+            src="/icons/apple-touch-icon.png" 
+            alt="Track-My-Bills App Icon" 
+            width={28} // Corresponds to h-7 w-7 (1.75rem * 16px/rem = 28px)
+            height={28}
+          />
           <span className="text-2xl font-bold text-primary">Track-My-Bills</span>
         </Link>
         <div className="flex items-center gap-2">
