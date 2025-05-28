@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from "next-themes";
-import type { ThemeProviderProps } from "next-themes/dist/types";
+import type { ThemeProviderProps as NextThemesProviderPropsOriginal } from "next-themes/dist/types";
 
 export type ColorScheme = "teal" | "blue" | "orange";
 export type AppearanceMode = "light" | "dark" | "system";
@@ -21,12 +21,13 @@ const AppThemeContext = React.createContext<AppThemeContextType | undefined>(und
 export function useAppTheme() {
   const context = React.useContext(AppThemeContext);
   if (context === undefined) {
-    throw new Error("useAppTheme must be used within a ThemeProvider");
+    throw new Error("useAppTheme must be used within a ThemeProvider's hierarchy");
   }
   return context;
 }
 
-export function ThemeProvider({ children, ...props }: ThemeProviderProps & { children: React.ReactNode }) {
+// Inner component to access next-themes context and provide AppThemeContext
+function AppThemeContextProvider({ children }: { children: React.ReactNode }) {
   const { theme: nextTheme, setTheme: setNextTheme, resolvedTheme } = useNextTheme();
   const [colorScheme, setColorSchemeState] = React.useState<ColorScheme>("teal");
 
@@ -34,7 +35,10 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps & { chi
     const savedColorScheme = localStorage.getItem("billtrack-color-scheme") as ColorScheme | null;
     const initialColorScheme = savedColorScheme || "teal";
     setColorSchemeState(initialColorScheme);
-    document.documentElement.setAttribute("data-color-theme", initialColorScheme);
+    // Ensure data-color-theme is set on mount if not already set by server/initial render
+    if (document.documentElement.getAttribute("data-color-theme") !== initialColorScheme) {
+        document.documentElement.setAttribute("data-color-theme", initialColorScheme);
+    }
   }, []);
 
   const setColorScheme = (scheme: ColorScheme) => {
@@ -58,10 +62,20 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps & { chi
   };
 
   return (
+    <AppThemeContext.Provider value={contextValue}>
+      {children}
+    </AppThemeContext.Provider>
+  );
+}
+
+// This is the main ThemeProvider component used in layout.tsx
+// It accepts props intended for NextThemesProvider and passes them through.
+export function ThemeProvider({ children, ...props }: NextThemesProviderPropsOriginal & { children: React.ReactNode }) {
+  return (
     <NextThemesProvider {...props}>
-      <AppThemeContext.Provider value={contextValue}>
+      <AppThemeContextProvider>
         {children}
-      </AppThemeContext.Provider>
+      </AppThemeContextProvider>
     </NextThemesProvider>
   );
 }
