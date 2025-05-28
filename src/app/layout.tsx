@@ -4,6 +4,7 @@ import './globals.css';
 import { AppHeader } from '@/components/AppHeader';
 import { Toaster } from '@/components/ui/toaster';
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,14 +29,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <div className="flex min-h-screen flex-col">
-          <AppHeader />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Toaster />
-        </div>
-        <SpeedInsights />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="flex min-h-screen flex-col">
+            <AppHeader />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Toaster />
+          </div>
+          <SpeedInsights />
+        </ThemeProvider>
       </body>
     </html>
   );
