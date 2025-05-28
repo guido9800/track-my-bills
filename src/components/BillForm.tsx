@@ -28,7 +28,7 @@ import { useBills } from "@/hooks/useBills";
 import { BillCategories, CategoryIcon } from "@/components/icons";
 import type { Bill, BillCategory, RecurrenceType } from "@/lib/types";
 import { RecurrenceOptions } from "@/lib/types";
-import { CalendarIcon, CheckCircle } from "lucide-react";
+import { CalendarIcon, CheckCircle, Check, XCircle } from "lucide-react"; // Added Check, XCircle
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -62,9 +62,11 @@ type BillFormValues = z.infer<typeof billFormSchema>;
 
 interface BillFormProps {
   billToEdit?: Bill;
+  showCancelButton?: boolean; // New prop
+  onCancelClick?: () => void;  // New prop
 }
 
-export function BillForm({ billToEdit }: BillFormProps) {
+export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFormProps) {
   const { addBill, updateBill } = useBills();
   const { toast } = useToast();
   const router = useRouter();
@@ -74,7 +76,6 @@ export function BillForm({ billToEdit }: BillFormProps) {
     ? {
         name: billToEdit.name,
         amount: billToEdit.amount,
-        // Ensure dueDate is parsed correctly, providing a fallback if it's somehow invalid
         dueDate: billToEdit.dueDate ? parseISO(billToEdit.dueDate) : new Date(), 
         category: billToEdit.category,
         recurrenceType: billToEdit.recurrenceType || "None",
@@ -82,7 +83,7 @@ export function BillForm({ billToEdit }: BillFormProps) {
       }
     : {
         name: "",
-        amount: "" as unknown as number,
+        amount: "" as unknown as number, // Keep as is for controlled input handling
         category: undefined,
         dueDate: undefined,
         recurrenceType: "None",
@@ -94,7 +95,6 @@ export function BillForm({ billToEdit }: BillFormProps) {
     defaultValues: defaultFormValues,
   });
   
-  // Reset form if billToEdit changes (e.g. navigating between edit pages or prop updates)
   useEffect(() => {
     if (billToEdit) {
       form.reset({
@@ -106,7 +106,7 @@ export function BillForm({ billToEdit }: BillFormProps) {
         recurrenceStartDate: billToEdit.recurrenceStartDate ? parseISO(billToEdit.recurrenceStartDate) : undefined,
       });
     } else {
-      form.reset({ // Reset to blank form if billToEdit becomes undefined
+      form.reset({ 
         name: "",
         amount: "" as unknown as number,
         category: undefined,
@@ -126,15 +126,14 @@ export function BillForm({ billToEdit }: BillFormProps) {
       amount: data.amount,
       dueDate: format(data.dueDate, "yyyy-MM-dd"),
       category: data.category as BillCategory,
-      // Ensure recurrenceType is undefined if "None", otherwise use the value
       recurrenceType: data.recurrenceType === "None" ? undefined : data.recurrenceType,
       recurrenceStartDate: data.recurrenceStartDate ? format(data.recurrenceStartDate, "yyyy-MM-dd") : undefined,
     };
 
     if (isEditing && billToEdit) {
       const updatedBill: Bill = {
-        ...billToEdit, // Preserve id, paid, createdAt from original bill
-        ...billDataForStorage, // Apply new form data
+        ...billToEdit, 
+        ...billDataForStorage, 
       };
       updateBill(updatedBill);
       toast({
@@ -150,7 +149,7 @@ export function BillForm({ billToEdit }: BillFormProps) {
         description: `${data.name} has been successfully added.`,
         action: <CheckCircle className="text-green-500" />,
       });
-      form.reset(); // Reset form to defaultValues for new bill
+      form.reset(); 
       router.push('/');
     }
   }
@@ -178,7 +177,8 @@ export function BillForm({ billToEdit }: BillFormProps) {
             <FormItem>
               <FormLabel>Amount ($)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" placeholder="e.g., 15.99" {...field} />
+                {/* Ensure value is handled correctly to avoid controlled/uncontrolled issues */}
+                <Input type="number" step="0.01" placeholder="e.g., 15.99" {...field} value={field.value === undefined || field.value === null ? '' : field.value} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -219,9 +219,8 @@ export function BillForm({ billToEdit }: BillFormProps) {
                             form.setValue("recurrenceStartDate", date, { shouldValidate: true });
                         }
                     }}
-                    // Allow past dates when editing, but not for new bills if not editing
                     disabled={(date) => !isEditing && date < new Date(new Date().setDate(new Date().getDate() -1)) } 
-                    initialFocus={!isEditing} // Only initialFocus on new bill form
+                    initialFocus={!isEditing} 
                   />
                 </PopoverContent>
               </Popover>
@@ -324,7 +323,6 @@ export function BillForm({ billToEdit }: BillFormProps) {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                       // Allow past dates when editing
                       disabled={(date) => !isEditing && date < new Date(new Date().setDate(new Date().getDate() -1)) }
                       initialFocus={!isEditing}
                     />
@@ -336,9 +334,26 @@ export function BillForm({ billToEdit }: BillFormProps) {
           />
         )}
         
-        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-          {isEditing ? "Update Bill" : "Add Bill"}
-        </Button>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          {showCancelButton && onCancelClick && (
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={onCancelClick} 
+              className="w-full sm:w-auto"
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+          )}
+          <Button 
+            type="submit" 
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Check className="mr-2 h-4 w-4" />
+            {isEditing ? "Update Bill" : "Add Bill"}
+          </Button>
+        </div>
       </form>
     </Form>
   );
