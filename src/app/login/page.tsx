@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, LogIn as LogInIcon, AlertTriangle } from 'lucide-react';
 
-// Simple Google G Logo SVG
+// Simple Google G Logo SVG - Kept for potential future re-add
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M17.6402 9.20455C17.6402 8.56818 17.582 7.94318 17.4695 7.34091H9V10.8409H13.8439C13.6366 11.9943 13.0002 12.9716 12.0457 13.625V15.9602H14.9548C16.6588 14.4034 17.6402 12.0057 17.6402 9.20455Z" fill="#4285F4"/>
@@ -24,7 +24,7 @@ const GoogleIcon = () => (
   </svg>
 );
 
-// Simple Apple Logo SVG
+// Simple Apple Logo SVG - Kept for potential future re-add
 const AppleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <path d="M14.7344 9.84375C14.7394 9.84375 14.7774 7.68281 16.0444 6.68906C15.2504 5.67188 14.1024 5.38125 13.5564 5.35781C12.3014 5.20781 11.3344 6.01875 10.8324 6.01875C10.3304 6.01875 9.19291 5.21812 7.97885 5.325C6.93285 5.40469 5.95035 5.86875 5.2641 6.68906C3.88285 8.34844 3.71629 10.9219 5.06479 12.75C5.71204 13.6266 6.58204 14.6719 7.75551 14.6719C8.90151 14.6719 9.26485 13.9828 10.5965 13.9828C11.9173 13.9828 12.2165 14.6719 13.4555 14.6484C14.7054 14.6141 15.4444 13.6109 16.0674 12.7078C15.2814 12.2391 14.7444 11.1188 14.7444 9.84375H14.7344ZM10.0524 4.07812C10.5704 3.45469 11.3648 2.98125 12.1088 2.8125C11.9424 3.51094 11.3964 4.26094 10.8894 4.74844C10.4198 5.18906 9.70035 5.70469 9.0141 5.625C9.20785 4.9125 9.65235 4.33594 10.0524 4.07812Z"/>
@@ -72,53 +72,54 @@ export default function LoginPage() {
     }
   };
 
-  const handleSocialLogin = async (providerName: 'google' | 'apple') => {
-    setLoading(true);
-    setError(null);
-    let provider;
-    if (providerName === 'google') {
-      provider = new GoogleAuthProvider();
-    } else if (providerName === 'apple') {
-      provider = new OAuthProvider('apple.com');
-      // You can add custom scopes for Apple if needed
-      // provider.addScope('email');
-      // provider.addScope('name');
-    } else {
-      setError("Invalid login provider.");
-      setLoading(false);
-      return;
-    }
+  // Temporarily commenting out social login functionality
+  // const handleSocialLogin = async (providerName: 'google' | 'apple') => {
+  //   setLoading(true);
+  //   setError(null);
+  //   let provider;
+  //   if (providerName === 'google') {
+  //     provider = new GoogleAuthProvider();
+  //   } else if (providerName === 'apple') {
+  //     provider = new OAuthProvider('apple.com');
+  //   } else {
+  //     setError("Invalid login provider.");
+  //     setLoading(false);
+  //     return;
+  //   }
 
-    try {
-      await signInWithPopup(auth, provider);
-      toast({
-        title: "Login Successful",
-        description: `Welcome! You've signed in with ${providerName.charAt(0).toUpperCase() + providerName.slice(1)}.`,
-      });
-      router.push('/');
-    } catch (err: any) {
-      let errorMessage = `Failed to sign in with ${providerName}. Please try again.`;
-      if (err.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = "An account already exists with the same email address but different sign-in credentials. Try signing in with the original method.";
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Sign-in process was cancelled.";
-      } else if (err.code === 'auth/cancelled-popup-request') {
-         errorMessage = "Sign-in process was cancelled. Only one sign-in attempt is allowed at a time.";
-      } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = "Sign-in popup was blocked by the browser. Please disable your popup blocker and try again.";
-      } else {
-        errorMessage = err.message || errorMessage;
-      }
-      setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: errorMessage,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     await signInWithPopup(auth, provider);
+  //     toast({
+  //       title: "Login Successful",
+  //       description: `Welcome! You've signed in with ${providerName.charAt(0).toUpperCase() + providerName.slice(1)}.`,
+  //     });
+  //     router.push('/');
+  //   } catch (err: any) {
+  //     let errorMessage = `Failed to sign in with ${providerName}. Please try again.`;
+  //     if (err.code === 'auth/account-exists-with-different-credential') {
+  //       errorMessage = "An account already exists with the same email address but different sign-in credentials. Try signing in with the original method.";
+  //     } else if (err.code === 'auth/popup-closed-by-user') {
+  //       errorMessage = "Sign-in process was cancelled.";
+  //     } else if (err.code === 'auth/cancelled-popup-request') {
+  //        errorMessage = "Sign-in process was cancelled. Only one sign-in attempt is allowed at a time.";
+  //     } else if (err.code === 'auth/popup-blocked') {
+  //       errorMessage = "Sign-in popup was blocked by the browser. Please disable your popup blocker and try again.";
+  //     } else if (err.code === 'auth/unauthorized-domain') {
+  //       errorMessage = "This domain is not authorized for this sign-in method. Please check Firebase configuration.";
+  //     }
+  //      else {
+  //       errorMessage = err.message || errorMessage;
+  //     }
+  //     setError(errorMessage);
+  //     toast({
+  //       variant: "destructive",
+  //       title: "Login Failed",
+  //       description: errorMessage,
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
 
   return (
@@ -184,12 +185,14 @@ export default function LoginPage() {
             </div>
           )}
           
+          {/* Temporarily hiding social login options */}
+          {/*
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <Separator />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+              <span className="bg-card px-2 text-muted-foreground">
                 Or continue with
               </span>
             </div>
@@ -215,6 +218,7 @@ export default function LoginPage() {
               <span className="ml-2">Sign in with Apple</span>
             </Button>
           </div>
+          */}
 
         </CardContent>
         <CardFooter className="flex flex-col items-center space-y-2 pt-6">
@@ -229,5 +233,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
