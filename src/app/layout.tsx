@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'BillTrack - Manage Your Monthly Bills',
+  title: 'Track-My-Bills - Manage Your Monthly Bills',
   description: 'Easily track your monthly bills, due dates, and payments.',
 };
 
