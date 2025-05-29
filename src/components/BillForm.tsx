@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type DefaultValues } from "react-hook-form"; // Import DefaultValues
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +25,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useBills } from "@/hooks/useBills";
-import { CategoryIcon } from "@/components/icons"; // Keep CategoryIcon import
+import { CategoryIcon } from "@/components/icons";
 import type { Bill, BillCategory, RecurrenceType } from "@/lib/types";
-import { BillCategories, RecurrenceOptions } from "@/lib/types"; // Import BillCategories from lib/types
+import { BillCategories, RecurrenceOptions } from "@/lib/types";
 import { CalendarIcon, CheckCircle, Check, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
@@ -72,7 +72,8 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
   const router = useRouter();
   const isEditing = !!billToEdit;
 
-  const defaultFormValues: BillFormValues = billToEdit
+  // Use DefaultValues type for defaultFormValues
+  const defaultFormValues: DefaultValues<BillFormValues> = billToEdit
     ? {
         name: billToEdit.name,
         amount: billToEdit.amount,
@@ -81,9 +82,9 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
         recurrenceType: billToEdit.recurrenceType || "None",
         recurrenceStartDate: billToEdit.recurrenceStartDate ? parseISO(billToEdit.recurrenceStartDate) : undefined,
       }
-    : {
+    : { // For new bill, undefined is fine for fields that will be user-selected
         name: "",
-        amount: "" as unknown as number,
+        amount: undefined, // Input value prop will handle displaying this as ''
         category: undefined,
         dueDate: undefined,
         recurrenceType: "None",
@@ -108,7 +109,7 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
     } else {
       form.reset({ 
         name: "",
-        amount: "" as unknown as number,
+        amount: undefined,
         category: undefined,
         dueDate: undefined,
         recurrenceType: "None",
@@ -125,8 +126,8 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
       name: data.name,
       amount: data.amount,
       dueDate: format(data.dueDate, "yyyy-MM-dd"),
-      category: data.category as BillCategory,
-      recurrenceType: data.recurrenceType === "None" ? undefined : data.recurrenceType,
+      category: data.category as BillCategory, // Zod ensures data.category is valid here
+      recurrenceType: data.recurrenceType === "None" ? undefined : data.recurrenceType as RecurrenceType | undefined,
       recurrenceStartDate: data.recurrenceStartDate ? format(data.recurrenceStartDate, "yyyy-MM-dd") : undefined,
     };
 
@@ -177,7 +178,7 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
             <FormItem>
               <FormLabel>Amount ($)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" placeholder="e.g., 15.99" {...field} value={field.value === undefined || field.value === null ? '' : field.value} />
+                <Input type="number" step="0.01" placeholder="e.g., 15.99" {...field} value={field.value === undefined || field.value === null ? '' : String(field.value)} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -357,3 +358,5 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
     </Form>
   );
 }
+
+    
