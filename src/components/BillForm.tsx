@@ -25,10 +25,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useBills } from "@/hooks/useBills";
-import { BillCategories, CategoryIcon } from "@/components/icons";
+import { CategoryIcon } from "@/components/icons"; // Keep CategoryIcon import
 import type { Bill, BillCategory, RecurrenceType } from "@/lib/types";
-import { RecurrenceOptions } from "@/lib/types";
-import { CalendarIcon, CheckCircle, Check, XCircle } from "lucide-react"; // Added Check, XCircle
+import { BillCategories, RecurrenceOptions } from "@/lib/types"; // Import BillCategories from lib/types
+import { CalendarIcon, CheckCircle, Check, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -62,8 +62,8 @@ type BillFormValues = z.infer<typeof billFormSchema>;
 
 interface BillFormProps {
   billToEdit?: Bill;
-  showCancelButton?: boolean; // New prop
-  onCancelClick?: () => void;  // New prop
+  showCancelButton?: boolean;
+  onCancelClick?: () => void;
 }
 
 export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFormProps) {
@@ -83,7 +83,7 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
       }
     : {
         name: "",
-        amount: "" as unknown as number, // Keep as is for controlled input handling
+        amount: "" as unknown as number,
         category: undefined,
         dueDate: undefined,
         recurrenceType: "None",
@@ -177,7 +177,6 @@ export function BillForm({ billToEdit, showCancelButton, onCancelClick }: BillFo
             <FormItem>
               <FormLabel>Amount ($)</FormLabel>
               <FormControl>
-                {/* Ensure value is handled correctly to avoid controlled/uncontrolled issues */}
                 <Input type="number" step="0.01" placeholder="e.g., 15.99" {...field} value={field.value === undefined || field.value === null ? '' : field.value} />
               </FormControl>
               <FormMessage />
