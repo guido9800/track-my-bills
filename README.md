@@ -1,4 +1,4 @@
-
+firebase apphosting:backends:list
 
 # Firebase Studio
 

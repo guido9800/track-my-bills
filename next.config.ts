@@ -14,14 +14,9 @@ const pwaConfig = {
 
 const withPWA = withPWAInit(pwaConfig);
 
+// Configuration for Next.js
 const nextConfig: NextConfig = {
   /* config options here */
-  // typescript: {
-  //   ignoreBuildErrors: true, // This was already removed or commented out
-  // },
-  // eslint: { // This was already removed or commented out
-  //   ignoreDuringBuilds: true,
-  // },
   images: {
     remotePatterns: [
       {
