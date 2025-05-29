@@ -6,10 +6,10 @@ const pwaConfig = {
   dest: "public",
   register: true,
   // PWA will now be enabled in development (disable line was removed)
-  // buildExcludes: ["app-build-manifest.json"],
-  // sw: "service-worker.js",
-  // cacheOnFrontEndNav: true,
-  // reloadOnOnline: true,
+  buildExcludes: ["app-build-manifest.json", /\/favicon\.ico$/], // Exclude favicon.ico from PWA build
+  // sw: "service-worker.js", // Default
+  // cacheOnFrontEndNav: true, // Default is false, enable if needed
+  // reloadOnOnline: true, // Default is true
 };
 
 const withPWA = withPWAInit(pwaConfig);
@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   // typescript: {
   //   ignoreBuildErrors: true, // This was already removed or commented out
   // },
-  // eslint: { // Removing this block
+  // eslint: { // This was already removed or commented out
   //   ignoreDuringBuilds: true,
   // },
   images: {
