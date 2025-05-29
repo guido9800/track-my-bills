@@ -2,21 +2,23 @@
 import type {NextConfig} from 'next';
 import withPWAInit from "@ducanh2912/next-pwa";
 
-const withPWA = withPWAInit({
+const pwaConfig = {
   dest: "public",
   register: true,
-  skipWaiting: true,
+  // skipWaiting: true, // Removed this line as it causes a type error and true is the default
   // PWA will now be enabled in development
   // buildExcludes: ["app-build-manifest.json"],
   // sw: "service-worker.js",
   // cacheOnFrontEndNav: true,
   // reloadOnOnline: true,
-});
+};
+
+const withPWA = withPWAInit(pwaConfig);
 
 const nextConfig: NextConfig = {
   /* config options here */
   // typescript: {
-  //   ignoreBuildErrors: true, // Removed this line
+  //   ignoreBuildErrors: true, // This was already removed or commented out
   // },
   eslint: {
     ignoreDuringBuilds: true,
