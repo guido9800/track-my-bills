@@ -39,6 +39,17 @@ export function AppHeader() {
   const [iconVersion, setIconVersion] = useState<number | null>(null);
   const [storagePreference, setStoragePreference] = useState<StoragePreference>("local");
 
+  // Console logs for debugging
+  console.log('[AppHeader] Rendering. User:', user ? user.uid : null, 'Loading:', loading, 'Current Storage Pref:', storagePreference);
+
+  useEffect(() => {
+    console.log('[AppHeader] useEffect - User state updated:', user ? user.uid : null);
+  }, [user]);
+
+  useEffect(() => {
+    console.log('[AppHeader] useEffect - Loading state updated:', loading);
+  }, [loading]);
+
   useEffect(() => {
     // Set iconVersion on the client side after hydration
     setIconVersion(Date.now());
@@ -59,7 +70,6 @@ export function AppHeader() {
     // Potentially trigger data migration or sync in the future
     // For now, we might just reload or inform the user that changes apply on next load/action.
     // To keep it simple, we'll just update the preference. useBills will pick this up.
-    // Consider a toast message here in a real app.
   };
 
 
@@ -79,18 +89,6 @@ export function AppHeader() {
     if (!email) return 'U';
     return email.substring(0, 2).toUpperCase();
   };
-
-  // Debug logs
-  console.log('[AppHeader] Rendering. User:', user ? user.uid : null, 'Loading:', loading, 'Current Storage Pref:', storagePreference);
-
-  useEffect(() => {
-    console.log('[AppHeader] useEffect - User state updated:', user ? user.uid : null);
-  }, [user]);
-
-  useEffect(() => {
-    console.log('[AppHeader] useEffect - Loading state updated:', loading);
-  }, [loading]);
-
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -170,7 +168,6 @@ export function AppHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {console.log('[AppHeader] In JSX - before auth check. User:', user ? user.uid : null, 'Loading:', loading)}
           {!loading && (
             user ? (
               <DropdownMenu>
