@@ -1,4 +1,4 @@
-firebase apphosting:backends:list
+npm cache clean --forcefirebase apphosting:backends:list
 
 # Firebase Studio
 

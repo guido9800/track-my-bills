@@ -29,11 +29,11 @@ import { useState, useEffect } from 'react';
 export type StoragePreference = "local" | "cloud";
 
 export function AppHeader() {
-  const { 
-    appearanceMode, 
-    setAppearanceMode, 
-    colorScheme, 
-    setColorScheme 
+  const {
+    appearanceMode,
+    setAppearanceMode,
+    colorScheme,
+    setColorScheme
   } = useAppTheme();
   const { user, logout, loading } = useAuth();
   const [iconVersion, setIconVersion] = useState<number | null>(null);
@@ -48,12 +48,14 @@ export function AppHeader() {
     if (savedPreference) {
       setStoragePreference(savedPreference);
     }
+    console.log('[AppHeader] Initial mount effect. Loaded storage preference:', savedPreference || 'local (default)');
   }, []);
 
   const handleStoragePreferenceChange = (value: string) => {
     const newPreference = value as StoragePreference;
     setStoragePreference(newPreference);
     localStorage.setItem("billtrack-storage-preference", newPreference);
+    console.log('[AppHeader] Storage preference changed to:', newPreference);
     // Potentially trigger data migration or sync in the future
     // For now, we might just reload or inform the user that changes apply on next load/action.
     // To keep it simple, we'll just update the preference. useBills will pick this up.
@@ -78,18 +80,30 @@ export function AppHeader() {
     return email.substring(0, 2).toUpperCase();
   };
 
+  // Debug logs
+  console.log('[AppHeader] Rendering. User:', user ? user.uid : null, 'Loading:', loading, 'Current Storage Pref:', storagePreference);
+
+  useEffect(() => {
+    console.log('[AppHeader] useEffect - User state updated:', user ? user.uid : null);
+  }, [user]);
+
+  useEffect(() => {
+    console.log('[AppHeader] useEffect - Loading state updated:', loading);
+  }, [loading]);
+
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           {iconVersion ? (
-             <Image 
+             <Image
               src={`/icons/icon-192x192.png?v=${iconVersion}`}
-              alt="Track-My-Bills App Icon" 
-              width={28} 
+              alt="Track-My-Bills App Icon"
+              width={28}
               height={28}
               className="rounded-sm"
-              key={iconVersion} 
+              key={iconVersion}
             />
           ) : (
             <div style={{width: 28, height: 28}} className="rounded-sm bg-muted" /> // Placeholder
@@ -127,8 +141,8 @@ export function AppHeader() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Color Scheme</DropdownMenuLabel>
-              <DropdownMenuRadioGroup 
-                value={colorScheme} 
+              <DropdownMenuRadioGroup
+                value={colorScheme}
                 onValueChange={(value) => setColorScheme(value as ColorScheme)}
               >
                 {colorSchemes.map((scheme) => (
@@ -139,8 +153,8 @@ export function AppHeader() {
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Appearance</DropdownMenuLabel>
-              <DropdownMenuRadioGroup 
-                value={appearanceMode || "system"} 
+              <DropdownMenuRadioGroup
+                value={appearanceMode || "system"}
                 onValueChange={(value) => setAppearanceMode(value as AppearanceMode)}
               >
                 {appearanceModes.map((mode) => {
@@ -156,6 +170,7 @@ export function AppHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {console.log('[AppHeader] In JSX - before auth check. User:', user ? user.uid : null, 'Loading:', loading)}
           {!loading && (
             user ? (
               <DropdownMenu>
@@ -174,8 +189,8 @@ export function AppHeader() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Storage Preference</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup 
-                    value={storagePreference} 
+                  <DropdownMenuRadioGroup
+                    value={storagePreference}
                     onValueChange={handleStoragePreferenceChange}
                   >
                     <DropdownMenuRadioItem value="local" className="flex items-center gap-2">
