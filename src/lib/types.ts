@@ -1,4 +1,5 @@
-export const BillCategories: BillCategory[] = ["Housing", "Utilities", "Subscription", "Loan", "Insurance", "Other"];
+
+export const BillCategories = ["Housing", "Utilities", "Subscription", "Loan", "Insurance", "Other"] as const;
 export type BillCategory = typeof BillCategories[number];
 
 export const RecurrenceOptions = ["None", "Weekly", "Bi-Weekly", "Monthly", "Quarterly", "Yearly"] as const;
