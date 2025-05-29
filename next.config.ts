@@ -5,8 +5,7 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const pwaConfig = {
   dest: "public",
   register: true,
-  // skipWaiting: true, // Removed this line as it causes a type error and true is the default
-  // PWA will now be enabled in development
+  // PWA will now be enabled in development (disable line was removed)
   // buildExcludes: ["app-build-manifest.json"],
   // sw: "service-worker.js",
   // cacheOnFrontEndNav: true,
@@ -20,9 +19,9 @@ const nextConfig: NextConfig = {
   // typescript: {
   //   ignoreBuildErrors: true, // This was already removed or commented out
   // },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // eslint: { // Removing this block
+  //   ignoreDuringBuilds: true,
+  // },
   images: {
     remotePatterns: [
       {
