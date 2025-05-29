@@ -16,8 +16,7 @@ import {
   deleteDoc,
   doc,
   query,
-  orderBy,
-  Timestamp, // For potential future use with Firestore Timestamps
+  // Timestamp, // Not using Firestore Timestamps directly for date fields in this iteration
 } from 'firebase/firestore';
 
 const LOCAL_STORAGE_KEY = 'billtrack_bills';
@@ -37,7 +36,8 @@ export function useBills() {
       if (savedPreference) {
         setStoragePreference(savedPreference);
       }
-    } catch (error) {
+    } catch (error)
+{
       console.error("Failed to load storage preference from localStorage:", error);
     }
   }, []);
@@ -53,19 +53,29 @@ export function useBills() {
         console.log(`[useBills] User logged in (${user.uid}) and preference is cloud. Attempting to load from Firestore.`);
         try {
           const billsCollectionRef = collection(firestore, 'users', user.uid, 'bills');
-          const q = query(billsCollectionRef); // Consider adding orderBy if using Firestore Timestamps
+          const q = query(billsCollectionRef); // Consider adding orderBy for consistent ordering, e.g., orderBy('dueDate')
           const querySnapshot = await getDocs(q);
           const firestoreBills: Bill[] = [];
-          querySnapshot.forEach((docSnap) => { // Renamed doc to docSnap to avoid conflict with firebase/firestore doc function
+          querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
-            // Assuming Firestore data matches Bill type. Date fields are already ISO strings.
-            firestoreBills.push({ id: docSnap.id, ...data } as Bill);
+            // Firestore data should match Bill type structure. Dates are stored as ISO strings.
+            firestoreBills.push({
+              id: docSnap.id,
+              name: data.name,
+              amount: data.amount,
+              dueDate: data.dueDate, // Assuming stored as ISO string
+              paid: data.paid,
+              category: data.category,
+              createdAt: data.createdAt, // Assuming stored as ISO string
+              recurrenceType: data.recurrenceType,
+              recurrenceStartDate: data.recurrenceStartDate,
+            } as Bill);
           });
           setBills(firestoreBills);
-          console.log("[useBills] Bills loaded from Firestore:", firestoreBills);
-        } catch (error) {
+          console.log("[useBills] Bills loaded from Firestore:", firestoreBills.length);
+        } catch (error: any) {
           console.error("[useBills] Error loading bills from Firestore:", error);
-          setFirestoreError("Failed to load bills from cloud. Please try again.");
+          setFirestoreError(`Failed to load bills from cloud: ${error.message}`);
           setBills([]); // Clear bills on error
         }
       } else {
@@ -85,12 +95,10 @@ export function useBills() {
       setIsLoading(false);
     };
 
-    // Only load bills if user state is determined (not loading)
-    // and if storage preference is known (though it defaults to 'local')
     if (!user && storagePreference === 'cloud') {
         console.log("[useBills] User not logged in, but preference is cloud. Clearing bills and waiting for login or pref change.");
         setBills([]);
-        setIsLoading(false);
+        setIsLoading(false); // Stop loading if no user and cloud preference
     } else {
         loadBills();
     }
@@ -99,7 +107,6 @@ export function useBills() {
 
   // Effect to save bills to localStorage (if preference is local)
   useEffect(() => {
-    // Only save to localStorage if preference is local and not loading
     if (!isLoading && storagePreference === 'local') {
       console.log("[useBills] Saving bills to localStorage (preference is local).");
       try {
@@ -111,81 +118,78 @@ export function useBills() {
   }, [bills, isLoading, storagePreference]);
 
   const addBill = useCallback(async (newBillData: Omit<Bill, 'id' | 'paid' | 'createdAt'>) => {
+    setIsLoading(true);
     setFirestoreError(null);
-    const clientGeneratedId = crypto.randomUUID(); // Generate ID for optimistic update and local state
-    const billWithClientData: Bill = {
-      ...newBillData,
-      id: clientGeneratedId,
-      paid: false,
-      createdAt: new Date().toISOString(),
-    };
+    const createdAtISO = new Date().toISOString();
 
     if (user && storagePreference === 'cloud') {
-      console.log(`[useBills] Adding bill to Firestore for user ${user.uid}:`, newBillData);
-      // Data to be stored in Firestore (without the client-generated ID)
+      console.log(`[useBills] Adding bill to Firestore for user ${user.uid}:`, newBillData.name);
       const firestoreBillData = {
-        name: newBillData.name,
-        amount: newBillData.amount,
-        dueDate: newBillData.dueDate,
-        category: newBillData.category,
-        recurrenceType: newBillData.recurrenceType,
-        recurrenceStartDate: newBillData.recurrenceStartDate,
+        ...newBillData,
         paid: false,
-        createdAt: billWithClientData.createdAt,
+        createdAt: createdAtISO,
       };
       try {
         const billsCollectionRef = collection(firestore, 'users', user.uid, 'bills');
         const docRef = await addDoc(billsCollectionRef, firestoreBillData);
-        // Optimistically update local state with Firestore-generated ID
-        setBills((prevBills) => [{ ...firestoreBillData, id: docRef.id } as Bill, ...prevBills.filter(b => b.id !== clientGeneratedId)]);
+        const newBillWithId: Bill = { ...firestoreBillData, id: docRef.id };
+        setBills((prevBills) => [newBillWithId, ...prevBills]);
         console.log("[useBills] Bill added to Firestore with ID:", docRef.id);
-      } catch (error) {
+      } catch (error: any) {
         console.error("[useBills] Error adding bill to Firestore:", error);
-        setFirestoreError("Failed to add bill to cloud. Please try again.");
-        // Optionally remove the optimistically added bill if Firestore fails
-        setBills((prevBills) => prevBills.filter(b => b.id !== clientGeneratedId));
+        setFirestoreError(`Failed to add bill to cloud: ${error.message}`);
       }
     } else {
+      const billWithClientData: Bill = {
+        ...newBillData,
+        id: crypto.randomUUID(),
+        paid: false,
+        createdAt: createdAtISO,
+      };
       setBills((prevBills) => [billWithClientData, ...prevBills]);
+      console.log("[useBills] Bill added to localStorage:", billWithClientData.id);
     }
+    setIsLoading(false);
   }, [user, storagePreference]);
 
   const updateBill = useCallback(async (updatedBill: Bill) => {
+    setIsLoading(true);
     setFirestoreError(null);
     if (user && storagePreference === 'cloud') {
-      console.log(`[useBills] Updating bill in Firestore for user ${user.uid}:`, updatedBill);
+      console.log(`[useBills] Updating bill in Firestore for user ${user.uid}:`, updatedBill.id);
       try {
         const billDocRef = doc(firestore, 'users', user.uid, 'bills', updatedBill.id);
-        const { id, ...dataToUpdate } = updatedBill; // Exclude 'id' from data written to Firestore fields
+        // Ensure we don't try to write 'id' as a field if it's the document ID
+        const { id, ...dataToUpdate } = updatedBill;
         await updateDoc(billDocRef, dataToUpdate);
         setBills((prevBills) =>
           prevBills.map((bill) => (bill.id === updatedBill.id ? updatedBill : bill))
         );
         console.log("[useBills] Bill updated in Firestore:", updatedBill.id);
-      } catch (error) {
+      } catch (error: any) {
         console.error("[useBills] Error updating bill in Firestore:", error);
-        setFirestoreError("Failed to update bill in cloud. Please try again.");
+        setFirestoreError(`Failed to update bill in cloud: ${error.message}`);
       }
     } else {
       setBills((prevBills) =>
         prevBills.map((bill) => (bill.id === updatedBill.id ? updatedBill : bill))
       );
+      console.log("[useBills] Bill updated in localStorage:", updatedBill.id);
     }
-  }, [user, storagePreference, bills]);
+    setIsLoading(false);
+  }, [user, storagePreference]);
 
   const togglePaidStatus = useCallback(async (billId: string) => {
     setFirestoreError(null);
-    const originalBills = bills; // Keep a copy for potential revert on error
-    const billToUpdate = originalBills.find(b => b.id === billId);
+    const billToUpdate = bills.find(b => b.id === billId);
     if (!billToUpdate) return;
 
     const newPaidStatus = !billToUpdate.paid;
+    const updatedBill = { ...billToUpdate, paid: newPaidStatus };
 
     // Optimistic UI update
     setBills((prevBills) =>
-      prevBills.map((bill) =>
-        bill.id === billId ? { ...bill, paid: newPaidStatus } : bill
-      )
+      prevBills.map((bill) => (bill.id === billId ? updatedBill : bill))
     );
 
     if (user && storagePreference === 'cloud') {
@@ -194,18 +198,23 @@ export function useBills() {
         const billDocRef = doc(firestore, 'users', user.uid, 'bills', billId);
         await updateDoc(billDocRef, { paid: newPaidStatus });
         console.log("[useBills] Bill paid status toggled in Firestore:", billId);
-      } catch (error) {
+      } catch (error: any) {
         console.error("[useBills] Error toggling paid status in Firestore:", error);
-        setFirestoreError("Failed to update bill status in cloud. Please try again.");
-        setBills(originalBills); // Revert optimistic update on error
+        setFirestoreError(`Failed to update bill status in cloud: ${error.message}`);
+        // Revert optimistic update on error
+        setBills((prevBills) =>
+          prevBills.map((bill) => (bill.id === billId ? billToUpdate : bill))
+        );
       }
+    } else {
+        console.log("[useBills] Bill status toggled in localStorage:", billId);
     }
   }, [bills, user, storagePreference]);
 
   const deleteBill = useCallback(async (billId: string) => {
     setFirestoreError(null);
-    const originalBills = bills; // Keep for revert
-    
+    const billsBeforeDelete = bills; // For potential revert
+
     // Optimistic UI update
     setBills((prevBills) => prevBills.filter((bill) => bill.id !== billId));
 
@@ -215,13 +224,15 @@ export function useBills() {
         const billDocRef = doc(firestore, 'users', user.uid, 'bills', billId);
         await deleteDoc(billDocRef);
         console.log("[useBills] Bill deleted from Firestore:", billId);
-      } catch (error) {
+      } catch (error: any) {
         console.error("[useBills] Error deleting bill from Firestore:", error);
-        setFirestoreError("Failed to delete bill from cloud. Please try again.");
-        setBills(originalBills); // Revert optimistic update
+        setFirestoreError(`Failed to delete bill from cloud: ${error.message}`);
+        setBills(billsBeforeDelete); // Revert optimistic update
       }
+    } else {
+        console.log("[useBills] Bill deleted from localStorage:", billId);
     }
-  }, [user, storagePreference, bills]);
+  }, [bills, user, storagePreference]);
 
   const getBillsForMonth = useCallback((date: Date): Bill[] => {
     const monthStart = startOfMonth(date);
@@ -249,6 +260,7 @@ export function useBills() {
       try {
         return parseISO(a.dueDate).getTime() - parseISO(b.dueDate).getTime();
       } catch (error) {
+        // If date parsing fails, keep original order relative to each other
         return 0;
       }
     });
@@ -257,8 +269,8 @@ export function useBills() {
   return {
     bills,
     isLoading,
-    storagePreference,
-    firestoreError, 
+    storagePreference, // Expose storagePreference for potential UI indicators
+    firestoreError,    // Expose firestoreError for UI display
     addBill,
     updateBill,
     togglePaidStatus,
@@ -268,5 +280,3 @@ export function useBills() {
     sortBills,
   };
 }
-
-    
