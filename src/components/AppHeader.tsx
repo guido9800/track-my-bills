@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, LayoutDashboard, Palette, Sun, Moon, Monitor, LogOut, LogIn } from 'lucide-react';
+import { PlusCircle, LayoutDashboard, Palette, Sun, Moon, Monitor, LogOut, LogIn, Database, Smartphone } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +26,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from 'react';
 
+export type StoragePreference = "local" | "cloud";
+
 export function AppHeader() {
   const { 
     appearanceMode, 
@@ -35,11 +37,29 @@ export function AppHeader() {
   } = useAppTheme();
   const { user, logout, loading } = useAuth();
   const [iconVersion, setIconVersion] = useState<number | null>(null);
+  const [storagePreference, setStoragePreference] = useState<StoragePreference>("local");
 
   useEffect(() => {
     // Set iconVersion on the client side after hydration
     setIconVersion(Date.now());
+
+    // Load storage preference from localStorage
+    const savedPreference = localStorage.getItem("billtrack-storage-preference") as StoragePreference | null;
+    if (savedPreference) {
+      setStoragePreference(savedPreference);
+    }
   }, []);
+
+  const handleStoragePreferenceChange = (value: string) => {
+    const newPreference = value as StoragePreference;
+    setStoragePreference(newPreference);
+    localStorage.setItem("billtrack-storage-preference", newPreference);
+    // Potentially trigger data migration or sync in the future
+    // For now, we might just reload or inform the user that changes apply on next load/action.
+    // To keep it simple, we'll just update the preference. useBills will pick this up.
+    // Consider a toast message here in a real app.
+  };
+
 
   const colorSchemes: {value: ColorScheme, label: string}[] = [
     { value: "teal", label: "Teal"},
@@ -62,14 +82,18 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Image 
-            src={iconVersion ? `/icons/icon-192x192.png?v=${iconVersion}` : "/icons/icon-192x192.png"}
-            alt="Track-My-Bills App Icon" 
-            width={28} 
-            height={28}
-            className="rounded-sm"
-            key={iconVersion || 'initial-icon-key'} // Ensure key changes if src changes, or is stable initially
-          />
+          {iconVersion ? (
+             <Image 
+              src={`/icons/icon-192x192.png?v=${iconVersion}`}
+              alt="Track-My-Bills App Icon" 
+              width={28} 
+              height={28}
+              className="rounded-sm"
+              key={iconVersion} 
+            />
+          ) : (
+            <div style={{width: 28, height: 28}} className="rounded-sm bg-muted" /> // Placeholder
+          )}
           <span className="text-2xl font-bold text-primary">Track-My-Bills</span>
         </Link>
         <div className="flex items-center gap-2">
@@ -143,10 +167,28 @@ export function AppHeader() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuItem disabled className="text-xs text-muted-foreground overflow-hidden text-ellipsis">
+                    {user.email}
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onSelect={logout}>
+                  <DropdownMenuLabel>Storage Preference</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup 
+                    value={storagePreference} 
+                    onValueChange={handleStoragePreferenceChange}
+                  >
+                    <DropdownMenuRadioItem value="local" className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4" />
+                      <span>Local Device</span>
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="cloud" className="flex items-center gap-2">
+                      <Database className="h-4 w-4" />
+                      <span>Cloud Sync</span>
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive-foreground focus:bg-destructive/90" onSelect={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
